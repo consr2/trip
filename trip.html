@@ -56,6 +56,11 @@
             <h2>아직 정해지지 않은 것</h2>
             <ul>${t.pending.map(p => `<li>${esc(p)}</li>`).join("")}</ul>
           </section>` : ""}
+        ${has(t.decided) ? `
+          <section class="panel decided">
+            <h2>정해진 것</h2>
+            <ul>${t.decided.map(p => `<li>${esc(p)}</li>`).join("")}</ul>
+          </section>` : ""}
         ${has(t.checklist) ? `
           <section class="panel">
             <h2>준비물</h2>

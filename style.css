@@ -146,6 +146,8 @@ ol.steps .what small { display: block; color: var(--muted); font-size: 0.82rem; 
 .panel li { padding: 3px 0; }
 .panel.pending { background: var(--warn-bg); border-color: transparent; }
 .panel.pending h2 { color: var(--warn); }
+.panel.decided ul { list-style: none; padding-left: 0; }
+.panel.decided li::before { content: "✓"; color: var(--accent); font-weight: 700; margin-right: 8px; }
 
 ul.check { list-style: none; padding: 0 !important; columns: 2; }
 ul.check li { break-inside: avoid; }

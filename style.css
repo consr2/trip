@@ -35,6 +35,8 @@
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -148,4 +150,40 @@ ul.check input { margin-right: 8px; accent-color: var(--accent); }
 @media (max-width: 520px) { ul.check { columns: 1; } }
 
 .notes { white-space: pre-wrap; margin: 0; }
+
+/* 핵심 정보 타일 */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 20px; }
+.fact { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.fact .label { font-size: 0.8rem; color: var(--muted); }
+.fact .value { font-weight: 700; margin-top: 2px; }
+.fact .sub { font-size: 0.85rem; color: var(--muted); }
+
+/* 이동 경로 */
+.route { margin: 16px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.route .stop { font-size: 0.9rem; padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); }
+.route .arrow { color: var(--muted); }
+
+/* 일정: 선택 항목 */
+.timeline li.opt { color: var(--muted); }
+.timeline li.opt::before { background: var(--surface); border: 2px solid var(--accent); width: 6px; height: 6px; }
+.tag { font-size: 0.72rem; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); vertical-align: 1px; }
+
+/* 아직 정할 것 */
+section#todo { border-color: var(--planned); background: var(--planned-bg); }
+section#todo h2 { color: var(--planned); }
+ul.todo { margin: 0; padding-left: 20px; }
+ul.todo li { padding: 2px 0; }
+
+/* 결정할 것 */
+h3.q { margin: 0 0 12px; font-size: 1rem; }
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.option { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.option h4 { margin: 0 0 8px; font-size: 0.98rem; }
+.option ul { list-style: none; margin: 0; padding: 0; font-size: 0.92rem; }
+.option li { padding: 2px 0 2px 22px; position: relative; }
+.option .pros li::before { content: "＋"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+.option .cons li::before { content: "－"; position: absolute; left: 0; color: #c0563f; font-weight: 700; }
+
+ul.tips { margin: 0; padding-left: 20px; }
+ul.tips li { padding: 3px 0; }
 footer.site { margin-top: 40px; color: var(--muted); font-size: 0.85rem; text-align: center; }

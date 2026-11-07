@@ -27,15 +27,24 @@
       const sections = [];
       const add = (key, title, html) => sections.push({ key, title, html });
 
-      if (has(t.info)) add("info", "기본 정보", `<dl class="info">${
-        t.info.map(i => `<dt>${esc(i.label)}</dt><dd>${esc(i.value)}</dd>`).join("")}</dl>`);
+      if (has(t.todo)) add("todo", "아직 정할 것", `<ul class="todo">${
+        t.todo.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`);
 
       if (has(t.itinerary)) add("itinerary", "일정", t.itinerary.map(d => `
         <div class="day">
           <h3>${esc(d.day)}<span>${fmtDate(d.date)}</span></h3>
           <ul class="timeline">${(d.items || []).map(i =>
-            `<li>${i.time ? `<span class="time">${esc(i.time)}</span>` : ""}${esc(i.text)}</li>`).join("")}</ul>
+            `<li class="${i.opt ? "opt" : ""}">${i.time ? `<span class="time">${esc(i.time)}</span>` : ""}${esc(i.text)}${i.opt ? ` <span class="tag">선택</span>` : ""}</li>`).join("")}</ul>
         </div>`).join(""));
+
+      if (has(t.decisions)) add("decisions", "결정할 것", t.decisions.map(d => `
+        <h3 class="q">${esc(d.title)}</h3>
+        <div class="options">${(d.options || []).map(o => `
+          <div class="option">
+            <h4>${esc(o.name)}</h4>
+            <ul class="pros">${(o.pros || []).map(p => `<li>${esc(p)}</li>`).join("")}</ul>
+            <ul class="cons">${(o.cons || []).map(c => `<li>${esc(c)}</li>`).join("")}</ul>
+          </div>`).join("")}</div>`).join(""));
 
       const nameCell = (name, link) => safeUrl(link)
         ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(name)}</a>` : esc(name);
@@ -71,6 +80,12 @@
         window.__checkStore = store;
       }
 
+      if (has(t.tips)) add("tips", "알아둘 것", `<ul class="tips">${
+        t.tips.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`);
+
+      if (has(t.info)) add("info", "기본 정보", `<dl class="info">${
+        t.info.map(i => `<dt>${esc(i.label)}</dt><dd>${esc(i.value)}</dd>`).join("")}</dl>`);
+
       if (has(t.links)) add("links", "링크", `<ul>${t.links.map(l => safeUrl(l.url)
         ? `<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || l.url)}</a></li>` : "").join("")}</ul>`);
 
@@ -82,6 +97,9 @@
           <h1>${esc(t.title)} ${badge(t.status)}</h1>
           <div class="meta">${[esc(t.country), dateRange(t.start, t.end), esc(t.companions)].filter(Boolean).join(" · ")}</div>
           ${t.summary ? `<p class="summary">${esc(t.summary)}</p>` : ""}
+          ${has(t.keyfacts) ? `<div class="facts">${t.keyfacts.map(f => `
+            <div class="fact"><div class="label">${esc(f.label)}</div><div class="value">${esc(f.value)}</div>${f.sub ? `<div class="sub">${esc(f.sub)}</div>` : ""}</div>`).join("")}</div>` : ""}
+          ${has(t.route) ? `<div class="route">${t.route.map(r => `<span class="stop">${esc(r)}</span>`).join(`<span class="arrow">→</span>`)}</div>` : ""}
         </div>
         ${sections.length > 1 ? `<nav class="toc">${sections.map(s => `<a href="#${s.key}">${s.title}</a>`).join("")}</nav>` : ""}
         ${sections.map(s => `<section class="block" id="${s.key}"><h2>${s.title}</h2>${s.html}</section>`).join("")}`;

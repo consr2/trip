@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>여행 상세</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="index.html">← 여행 목록</a>
+    <div id="app"></div>
+  </div>
+
+  <script src="trips.js"></script>
+  <script src="common.js"></script>
+  <script>
+    const id = new URLSearchParams(location.search).get("id");
+    const t = (window.TRIPS || []).find(x => x.id === id);
+    const app = document.getElementById("app");
+
+    if (!t) {
+      app.innerHTML = `<p class="empty">여행을 찾을 수 없어요. <a href="index.html">목록으로</a></p>`;
+    } else {
+      document.title = `${t.title} · 여행 계획`;
+      const has = a => Array.isArray(a) && a.length > 0;
+      const sections = [];
+      const add = (key, title, html) => sections.push({ key, title, html });
+
+      if (has(t.info)) add("info", "기본 정보", `<dl class="info">${
+        t.info.map(i => `<dt>${esc(i.label)}</dt><dd>${esc(i.value)}</dd>`).join("")}</dl>`);
+
+      if (has(t.itinerary)) add("itinerary", "일정", t.itinerary.map(d => `
+        <div class="day">
+          <h3>${esc(d.day)}<span>${fmtDate(d.date)}</span></h3>
+          <ul class="timeline">${(d.items || []).map(i =>
+            `<li>${i.time ? `<span class="time">${esc(i.time)}</span>` : ""}${esc(i.text)}</li>`).join("")}</ul>
+        </div>`).join(""));
+
+      const nameCell = (name, link) => safeUrl(link)
+        ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(name)}</a>` : esc(name);
+
+      if (has(t.places)) add("places", "가볼 곳", table(["장소", "종류", "메모"],
+        t.places.map(p => [nameCell(p.name, p.link), esc(p.type), esc(p.note)])));
+
+      if (has(t.food)) add("food", "먹을 것", table(["음식/가게", "위치", "메모"],
+        t.food.map(f => [nameCell(f.name, f.link), esc(f.where), esc(f.note)])));
+
+      if (has(t.stay)) add("stay", "숙소", table(["숙소", "기간", "메모"],
+        t.stay.map(s => [nameCell(s.name, s.link), esc(s.dates), esc(s.note)])));
+
+      if (has(t.transport)) add("transport", "교통", table(["항목", "메모"],
+        t.transport.map(x => [esc(x.name), esc(x.note)])));
+
+      if (has(t.budget)) {
+        const cur = t.currency || "원";
+        const total = t.budget.reduce((s, b) => s + (Number(b.amount) || 0), 0);
+        const money = n => `${Number(n || 0).toLocaleString("ko-KR")}${esc(cur)}`;
+        add("budget", "예산", `<div class="table-wrap"><table>
+          <thead><tr><th>항목</th><th class="num">금액</th></tr></thead>
+          <tbody>${t.budget.map(b => `<tr><td>${esc(b.item)}</td><td class="num">${money(b.amount)}</td></tr>`).join("")}
+          <tr class="total"><td>합계</td><td class="num">${money(total)}</td></tr></tbody></table></div>`);
+      }
+
+      if (has(t.checklist)) {
+        const store = "check:" + t.id;
+        let saved = {};
+        try { saved = JSON.parse(localStorage.getItem(store)) || {}; } catch (e) {}
+        add("checklist", "준비물", `<ul class="check">${t.checklist.map((c, i) =>
+          `<li><label><input type="checkbox" data-i="${i}" ${saved[i] ? "checked" : ""}>${esc(c)}</label></li>`).join("")}</ul>`);
+        window.__checkStore = store;
+      }
+
+      if (has(t.links)) add("links", "링크", `<ul>${t.links.map(l => safeUrl(l.url)
+        ? `<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || l.url)}</a></li>` : "").join("")}</ul>`);
+
+      if (t.notes) add("notes", "메모", `<p class="notes">${esc(t.notes)}</p>`);
+
+      app.innerHTML = `
+        <div class="hero">
+          <div style="font-size:2.4rem;line-height:1">${esc(t.emoji || "📍")}</div>
+          <h1>${esc(t.title)} ${badge(t.status)}</h1>
+          <div class="meta">${[esc(t.country), dateRange(t.start, t.end), esc(t.companions)].filter(Boolean).join(" · ")}</div>
+          ${t.summary ? `<p class="summary">${esc(t.summary)}</p>` : ""}
+        </div>
+        ${sections.length > 1 ? `<nav class="toc">${sections.map(s => `<a href="#${s.key}">${s.title}</a>`).join("")}</nav>` : ""}
+        ${sections.map(s => `<section class="block" id="${s.key}"><h2>${s.title}</h2>${s.html}</section>`).join("")}`;
+
+      // 체크리스트 상태는 이 브라우저에만 저장됩니다
+      app.addEventListener("change", e => {
+        if (!e.target.matches("ul.check input")) return;
+        const state = {};
+        app.querySelectorAll("ul.check input").forEach(cb => { if (cb.checked) state[cb.dataset.i] = 1; });
+        try { localStorage.setItem(window.__checkStore, JSON.stringify(state)); } catch (err) {}
+      });
+    }
+
+    function table(headers, rows) {
+      return `<div class="table-wrap"><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+        <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c || ""}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    }
+  </script>
+</body>
+</html>

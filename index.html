@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>나의 여행 계획</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="site">
+      <h1>✈️ 나의 여행 계획</h1>
+      <p>가고 싶은 곳, 갈 곳, 다녀온 곳</p>
+    </header>
+
+    <div class="filters" id="filters">
+      <button data-f="all" class="on">전체</button>
+      <button data-f="planned">계획 중</button>
+      <button data-f="booked">예약 완료</button>
+      <button data-f="done">다녀옴</button>
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <p class="empty" id="empty" hidden>해당하는 여행이 없어요.</p>
+
+    <footer class="site">trips.js 파일을 수정하면 이 목록이 바뀝니다.</footer>
+  </div>
+
+  <script src="trips.js"></script>
+  <script src="common.js"></script>
+  <script>
+    const grid = document.getElementById("grid");
+    const empty = document.getElementById("empty");
+    const trips = [...(window.TRIPS || [])].sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+
+    function render(filter) {
+      const list = filter === "all" ? trips : trips.filter(t => t.status === filter);
+      grid.innerHTML = list.map(t => `
+        <a class="card" href="trip.html?id=${encodeURIComponent(t.id)}">
+          <div class="emoji">${esc(t.emoji || "📍")}</div>
+          <h2>${esc(t.title)} ${badge(t.status)}</h2>
+          <div class="meta">${esc(t.country || "")}${t.start ? " · " + dateRange(t.start, t.end) : ""}</div>
+          ${t.summary ? `<p class="summary">${esc(t.summary)}</p>` : ""}
+        </a>`).join("");
+      empty.hidden = list.length > 0;
+    }
+
+    document.getElementById("filters").addEventListener("click", e => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      document.querySelectorAll("#filters button").forEach(b => b.classList.toggle("on", b === btn));
+      render(btn.dataset.f);
+    });
+
+    render("all");
+  </script>
+</body>
+</html>

@@ -39,7 +39,7 @@
         <a class="card" href="trip.html?id=${encodeURIComponent(t.id)}">
           <div class="emoji">${esc(t.emoji || "📍")}</div>
           <h2>${esc(t.title)} ${badge(t.status)}</h2>
-          <div class="meta">${esc(t.country || "")}${t.start ? " · " + dateRange(t.start, t.end) : ""}</div>
+          <div class="meta">${[dateRange(t.start, t.end), esc(t.people || "")].filter(Boolean).join(" · ")}</div>
           ${t.summary ? `<p class="summary">${esc(t.summary)}</p>` : ""}
         </a>`).join("");
       empty.hidden = list.length > 0;

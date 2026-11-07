@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="wrap">
+  <div class="wrap narrow">
     <a class="back" href="index.html">← 여행 목록</a>
     <div id="app"></div>
   </div>
@@ -18,104 +18,95 @@
     const id = new URLSearchParams(location.search).get("id");
     const t = (window.TRIPS || []).find(x => x.id === id);
     const app = document.getElementById("app");
+    const has = a => Array.isArray(a) && a.length > 0;
 
     if (!t) {
       app.innerHTML = `<p class="empty">여행을 찾을 수 없어요. <a href="index.html">목록으로</a></p>`;
     } else {
       document.title = `${t.title} · 여행 계획`;
-      const has = a => Array.isArray(a) && a.length > 0;
-      const sections = [];
-      const add = (key, title, html) => sections.push({ key, title, html });
+      const prepCount = (t.pending || []).length;
 
-      if (has(t.todo)) add("todo", "아직 정할 것", `<ul class="todo">${
-        t.todo.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`);
+      // ---- 일정 탭 ----
+      const scheduleHtml = (t.days || []).map((d, i) => `
+        <article class="daycard">
+          <header>
+            <div class="daynum">DAY ${i + 1}</div>
+            <div class="daydate">${shortDate(d.date)}</div>
+            <h2>${esc(d.title)}</h2>
+            ${d.car ? `<span class="carpill">🚗 렌트카</span>` : ""}
+          </header>
+          <ol class="steps">${(d.steps || []).map(s => `
+            <li>
+              <span class="when">${esc(s.time || "")}</span>
+              <span class="icon">${esc(s.icon || "•")}</span>
+              <span class="what">${esc(s.text)}${s.sub ? `<small>${esc(s.sub)}</small>` : ""}</span>
+            </li>`).join("")}
+          </ol>
+          ${d.stay ? `<footer class="stay">🛏️ <span>${esc(d.stay)}</span></footer>` : ""}
+        </article>`).join("");
 
-      if (has(t.itinerary)) add("itinerary", "일정", t.itinerary.map(d => `
-        <div class="day">
-          <h3>${esc(d.day)}<span>${fmtDate(d.date)}</span></h3>
-          <ul class="timeline">${(d.items || []).map(i =>
-            `<li class="${i.opt ? "opt" : ""}">${i.time ? `<span class="time">${esc(i.time)}</span>` : ""}${esc(i.text)}${i.opt ? ` <span class="tag">선택</span>` : ""}</li>`).join("")}</ul>
-        </div>`).join(""));
+      // ---- 준비 탭 ----
+      const store = "check:" + t.id;
+      let saved = {};
+      try { saved = JSON.parse(localStorage.getItem(store)) || {}; } catch (e) {}
 
-      if (has(t.decisions)) add("decisions", "결정할 것", t.decisions.map(d => `
-        <h3 class="q">${esc(d.title)}</h3>
-        <div class="options">${(d.options || []).map(o => `
-          <div class="option">
-            <h4>${esc(o.name)}</h4>
-            <ul class="pros">${(o.pros || []).map(p => `<li>${esc(p)}</li>`).join("")}</ul>
-            <ul class="cons">${(o.cons || []).map(c => `<li>${esc(c)}</li>`).join("")}</ul>
-          </div>`).join("")}</div>`).join(""));
-
-      const nameCell = (name, link) => safeUrl(link)
-        ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(name)}</a>` : esc(name);
-
-      if (has(t.places)) add("places", "가볼 곳", table(["장소", "종류", "메모"],
-        t.places.map(p => [nameCell(p.name, p.link), esc(p.type), esc(p.note)])));
-
-      if (has(t.food)) add("food", "먹을 것", table(["음식/가게", "위치", "메모"],
-        t.food.map(f => [nameCell(f.name, f.link), esc(f.where), esc(f.note)])));
-
-      if (has(t.stay)) add("stay", "숙소", table(["숙소", "기간", "메모"],
-        t.stay.map(s => [nameCell(s.name, s.link), esc(s.dates), esc(s.note)])));
-
-      if (has(t.transport)) add("transport", "교통", table(["항목", "메모"],
-        t.transport.map(x => [esc(x.name), esc(x.note)])));
-
-      if (has(t.budget)) {
-        const cur = t.currency || "원";
-        const total = t.budget.reduce((s, b) => s + (Number(b.amount) || 0), 0);
-        const money = n => `${Number(n || 0).toLocaleString("ko-KR")}${esc(cur)}`;
-        add("budget", "예산", `<div class="table-wrap"><table>
-          <thead><tr><th>항목</th><th class="num">금액</th></tr></thead>
-          <tbody>${t.budget.map(b => `<tr><td>${esc(b.item)}</td><td class="num">${money(b.amount)}</td></tr>`).join("")}
-          <tr class="total"><td>합계</td><td class="num">${money(total)}</td></tr></tbody></table></div>`);
-      }
-
-      if (has(t.checklist)) {
-        const store = "check:" + t.id;
-        let saved = {};
-        try { saved = JSON.parse(localStorage.getItem(store)) || {}; } catch (e) {}
-        add("checklist", "준비물", `<ul class="check">${t.checklist.map((c, i) =>
-          `<li><label><input type="checkbox" data-i="${i}" ${saved[i] ? "checked" : ""}>${esc(c)}</label></li>`).join("")}</ul>`);
-        window.__checkStore = store;
-      }
-
-      if (has(t.tips)) add("tips", "알아둘 것", `<ul class="tips">${
-        t.tips.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`);
-
-      if (has(t.info)) add("info", "기본 정보", `<dl class="info">${
-        t.info.map(i => `<dt>${esc(i.label)}</dt><dd>${esc(i.value)}</dd>`).join("")}</dl>`);
-
-      if (has(t.links)) add("links", "링크", `<ul>${t.links.map(l => safeUrl(l.url)
-        ? `<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || l.url)}</a></li>` : "").join("")}</ul>`);
-
-      if (t.notes) add("notes", "메모", `<p class="notes">${esc(t.notes)}</p>`);
+      const prepHtml = `
+        ${has(t.pending) ? `
+          <section class="panel pending">
+            <h2>아직 정해지지 않은 것</h2>
+            <ul>${t.pending.map(p => `<li>${esc(p)}</li>`).join("")}</ul>
+          </section>` : ""}
+        ${has(t.checklist) ? `
+          <section class="panel">
+            <h2>준비물</h2>
+            <ul class="check">${t.checklist.map((c, i) =>
+              `<li><label><input type="checkbox" data-i="${i}" ${saved[i] ? "checked" : ""}>${esc(c)}</label></li>`).join("")}</ul>
+          </section>` : ""}
+        ${has(t.tips) ? `
+          <section class="panel">
+            <h2>알아둘 것</h2>
+            <ul>${t.tips.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+          </section>` : ""}`;
 
       app.innerHTML = `
         <div class="hero">
-          <div style="font-size:2.4rem;line-height:1">${esc(t.emoji || "📍")}</div>
-          <h1>${esc(t.title)} ${badge(t.status)}</h1>
-          <div class="meta">${[esc(t.country), dateRange(t.start, t.end), esc(t.companions)].filter(Boolean).join(" · ")}</div>
-          ${t.summary ? `<p class="summary">${esc(t.summary)}</p>` : ""}
-          ${has(t.keyfacts) ? `<div class="facts">${t.keyfacts.map(f => `
-            <div class="fact"><div class="label">${esc(f.label)}</div><div class="value">${esc(f.value)}</div>${f.sub ? `<div class="sub">${esc(f.sub)}</div>` : ""}</div>`).join("")}</div>` : ""}
+          <div class="hero-emoji">${esc(t.emoji || "📍")}</div>
+          <h1>${esc(t.title)}</h1>
+          <div class="meta">${[dateRange(t.start, t.end), esc(t.people)].filter(Boolean).join(" · ")}</div>
           ${has(t.route) ? `<div class="route">${t.route.map(r => `<span class="stop">${esc(r)}</span>`).join(`<span class="arrow">→</span>`)}</div>` : ""}
         </div>
-        ${sections.length > 1 ? `<nav class="toc">${sections.map(s => `<a href="#${s.key}">${s.title}</a>`).join("")}</nav>` : ""}
-        ${sections.map(s => `<section class="block" id="${s.key}"><h2>${s.title}</h2>${s.html}</section>`).join("")}`;
+        <div class="tabs" role="tablist">
+          <button role="tab" data-tab="schedule">일정</button>
+          <button role="tab" data-tab="prep">준비 · 미정${prepCount ? ` <span class="count">${prepCount}</span>` : ""}</button>
+        </div>
+        <div data-pane="schedule">${scheduleHtml}</div>
+        <div data-pane="prep">${prepHtml}</div>`;
 
-      // 체크리스트 상태는 이 브라우저에만 저장됩니다
+      function show(tab) {
+        app.querySelectorAll("[data-tab]").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tab));
+        app.querySelectorAll("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== tab);
+      }
+      app.querySelector(".tabs").addEventListener("click", e => {
+        const b = e.target.closest("[data-tab]");
+        if (!b) return;
+        history.replaceState(null, "", b.dataset.tab === "prep" ? "#prep" : location.pathname + location.search);
+        show(b.dataset.tab);
+      });
+      show(location.hash === "#prep" ? "prep" : "schedule");
+
+      // 체크 상태는 이 브라우저에만 저장됩니다
       app.addEventListener("change", e => {
         if (!e.target.matches("ul.check input")) return;
         const state = {};
         app.querySelectorAll("ul.check input").forEach(cb => { if (cb.checked) state[cb.dataset.i] = 1; });
-        try { localStorage.setItem(window.__checkStore, JSON.stringify(state)); } catch (err) {}
+        try { localStorage.setItem(store, JSON.stringify(state)); } catch (err) {}
       });
     }
 
-    function table(headers, rows) {
-      return `<div class="table-wrap"><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
-        <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c || ""}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    function shortDate(d) {
+      if (!d) return "";
+      const [y, m, day] = d.split("-").map(Number);
+      return `${m}/${day} ${"일월화수목금토"[new Date(y, m - 1, day).getDay()]}`;
     }
   </script>
 </body>

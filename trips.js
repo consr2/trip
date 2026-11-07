@@ -43,7 +43,7 @@ window.TRIPS = [
         steps: [
           { time: "오전", icon: "🚆", text: "후쿠오카 → 벳푸", sub: "열차 또는 버스 약 2시간" },
           { time: "", icon: "🏨", text: "숙소 체크인 · 짐 맡기기" },
-          { time: "12:00", icon: "🚗", text: "렌트카 픽업" },
+          { time: "12:00", icon: "🚗", text: "렌트카 픽업 (벳푸역)" },
           { time: "", icon: "🦁", text: "아프리칸 사파리", sub: "차로 30~40분" },
           { time: "저녁", icon: "♨️", text: "벳푸 숙소에서 온천" }
         ],
@@ -70,7 +70,7 @@ window.TRIPS = [
           { time: "오전", icon: "🏨", text: "아침 식사 후 체크아웃" },
           { time: "", icon: "🌄", text: "사기리다이 전망대", sub: "벳푸 가는 길에" },
           { time: "", icon: "🚗", text: "벳푸로 돌아가기", sub: "국도 약 30분" },
-          { time: "18:00까지", icon: "🚗", text: "벳푸에서 렌트카 반납" },
+          { time: "18:00까지", icon: "🚗", text: "렌트카 반납 (벳푸역)" },
           { time: "", icon: "🚆", text: "벳푸 → 후쿠오카", sub: "열차 또는 버스 약 2시간" }
         ],
         stay: "후쿠오카"
@@ -83,10 +83,6 @@ window.TRIPS = [
           { time: "16:00", icon: "✈️", text: "후쿠오카 → 부산" }
         ]
       }
-    ],
-
-    decided: [
-      "렌트카 픽업·반납: 벳푸역"
     ],
 
     pending: [

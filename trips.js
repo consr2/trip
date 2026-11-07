@@ -69,6 +69,7 @@ window.TRIPS = [
           { time: "새벽", icon: "🌫️", text: "긴린코 호수 물안개", sub: "해 뜰 무렵, 숙소에서 걸어서" },
           { time: "오전", icon: "🏨", text: "아침 식사 후 체크아웃" },
           { time: "", icon: "🌄", text: "사기리다이 전망대", sub: "벳푸 가는 길에" },
+          { time: "", icon: "🚗", text: "벳푸로 돌아가기", sub: "국도 약 30분" },
           { time: "18:00까지", icon: "🚗", text: "벳푸에서 렌트카 반납" },
           { time: "", icon: "🚆", text: "벳푸 → 후쿠오카", sub: "열차 또는 버스 약 2시간" }
         ],
